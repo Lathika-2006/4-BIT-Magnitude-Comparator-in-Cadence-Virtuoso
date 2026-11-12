@@ -3,7 +3,7 @@
 
 A complete full-custom implementation of a 4-bit magnitude comparator, built hierarchically from hand-drawn transistor-level cells (INV, AND2, OR2, XNOR2).
 
-*Overview* • *Architecture* • *Results* • *Layout* • *Getting Started* • *Documentation*
+*Overview* • *Architecture* • *Results* • *Visual Gallery* • *Getting Started*
 
 ---
 
@@ -19,8 +19,8 @@ This project implements the comparator **full-custom**: every gate is drawn at t
 
 🔌 **Full-Custom Design**: Transistor-level schematic and hand-drawn layout  
 🧩 **Hierarchical Cell Library**: INV, AND2, OR2 and XNOR2 cells reused to build the 1-bit and 4-bit comparators  
-🔬 **Verified Functionality**: Exhaustive input-pattern simulation in Spectre/ADE  
-📐 **Complete Physical Flow**: Schematic → Simulation → Layout → DRC → LVS  
+🔬 **Simulation**: Transient simulation in Spectre/ADE  
+📐 **Physical Flow**: Schematic → Simulation → Layout → DRC  
 🏭 **180 nm gpdk180 PDK**: Industry-style academic design kit  
 
 ---
@@ -58,8 +58,6 @@ Comparison starts from the **MSB**: if the MSBs differ, the result is decided im
 
 ### Cell-Based Implementation
 
-The equations are mapped onto a small set of reusable 2-input cells:
-
 | Function | Implementation |
 |----------|----------------|
 | Bit equality Eᵢ | XNOR2 cell |
@@ -85,10 +83,10 @@ The equations are mapped onto a small set of reusable 2-input cells:
  SIMULATION  (Spectre / ADE, gpdk180 models)
         │
         ▼
- LAYOUT  (Virtuoso Layout XL / Layout Editor)
+ LAYOUT  (Virtuoso Layout XL)
         │
         ▼
- DRC → LVS → (optional) PEX post-layout simulation
+ DRC
 ```
 
 ---
@@ -103,11 +101,7 @@ A magnitude comparator is a combinational circuit that compares two n-bit unsign
 (A>B) + (A=B) + (A<B) = 1   (mutually exclusive and exhaustive)
 ```
 
-Since it is purely combinational, the output depends only on the present inputs (no clock or memory).
-
 ### How Binary Comparison Works
-
-Two numbers are compared bit by bit starting from the **most significant bit (MSB)**, just like comparing decimal numbers digit by digit:
 
 1. If A3 ≠ B3, the number with the 1 in that position is larger, and the result is decided.
 2. If A3 = B3, move to the next bit (A2 vs B2), and so on.
@@ -117,35 +111,25 @@ Two numbers are compared bit by bit starting from the **most significant bit (MS
 
 ### 1-Bit Comparator Derivation
 
-From the single-bit truth table (see Architecture):
-
 ```
 A > B :  G = A · B'
 A = B :  E = A ⊙ B = A·B + A'·B'   (XNOR)
 A < B :  L = A' · B
 ```
 
-Each output is a minterm or a simple function of A and B, so a 1-bit comparator needs one XNOR gate, two inverters and two AND gates.
+A 1-bit comparator needs one XNOR gate, two inverters and two AND gates.
 
 ### Extending to 4 Bits
-
-For each bit i, define:
 
 ```
 Gi = Ai · Bi'          (Ai greater than Bi)
 Li = Ai' · Bi          (Ai less than Bi)
 Ei = Ai ⊙ Bi           (Ai equal to Bi)
-```
 
-Then the 4-bit outputs are:
-
-```
 (A = B) = E3 · E2 · E1 · E0
 (A > B) = G3 + E3·G2 + E3·E2·G1 + E3·E2·E1·G0
 (A < B) = L3 + E3·L2 + E3·E2·L1 + E3·E2·E1·L0
 ```
-
-The term E3·G2 means "MSBs are equal AND bit 2 of A is greater". Each lower bit only matters if all higher bits are equal, which is why the E terms are chained (priority by significance).
 
 ### Sample 4-Bit Cases
 
@@ -159,15 +143,9 @@ The term E3·G2 means "MSBs are equal AND bit 2 of A is greater". Each lower bit
 | 1011 | 1010 | bit 0 (E3E2E1 = 1, G0 = 1) | 1 | 0 | 0 |
 | 1111 | 1111 | all bits equal | 0 | 1 | 0 |
 
-The last bit-level case shows the worst-case path: the signal must pass through the full chain of equality terms, so the critical delay comes from XNOR → AND chain → OR combining.
-
-### Cascading and Scalability
-
-Commercial comparators like the 74HC85 add cascade inputs (I A>B, I A=B, I A<B) so that several 4-bit blocks can be chained to compare 8, 12 or 16 bits. The lower block's outputs feed the higher block's cascade inputs, and they are used only when all four bits of the higher block are equal.
+The worst-case path runs through XNOR → AND chain → OR combining.
 
 ### CMOS Logic Fundamentals
-
-All cells in this design are **static CMOS** gates made of a complementary pair of networks:
 
 | Network | Device | Conducts when | Connected to |
 |---------|--------|---------------|--------------|
@@ -177,188 +155,138 @@ All cells in this design are **static CMOS** gates made of a complementary pair 
 - **Inverter:** one PMOS and one NMOS. Output = A'.
 - **NAND2:** NMOS in series, PMOS in parallel. Output = (A·B)'.
 - **NOR2:** NMOS in parallel, PMOS in series. Output = (A+B)'.
-- **AND2 / OR2:** a NAND2 / NOR2 followed by an inverter. This adds a stage but gives a full-swing, buffered output.
-- **XNOR2:** built from transistor-level networks or from basic gates, used here for bit-equality.
-
-Series transistors have higher resistance, so series devices are made wider. A PMOS has about half the hole mobility of an NMOS electron mobility, so **Wp is usually about 2× Wn** for balanced rise and fall times.
+- **AND2 / OR2:** a NAND2 / NOR2 followed by an inverter.
+- **XNOR2:** used here for bit-equality.
 
 ### Performance Metrics
 
-- **Propagation delay (tpd):** time from 50% of the input transition to 50% of the output transition. Worst case is measured on the longest path (here through the equality chain).
-- **Power:** Pdyn = α·C·VDD²·f (switching) plus Pleak (leakage, small at 180 nm). Total = Pdyn + Pstatic.
-- **Noise margin:** NMH = VOH − VIH, NML = VIL − VOL. Static CMOS has near rail-to-rail output swing, so noise margins are large.
-- **Power-Delay Product (PDP):** P × tpd, a figure of merit for energy per operation.
+- **Propagation delay (tpd):** 50% of input transition to 50% of output transition.
+- **Power:** Pdyn = α·C·VDD²·f plus leakage.
+- **Noise margin:** NMH = VOH − VIH, NML = VIL − VOL.
+- **Power-Delay Product (PDP):** P × tpd.
 
 ### Full-Custom vs Semi-Custom Design
 
 | Aspect | Full-Custom (this project) | Semi-Custom (standard cell) |
 |--------|----------------------------|-----------------------------|
-| Design effort | High (every transistor and polygon drawn manually) | Low (automated synthesis, P&R) |
-| Area | Smallest, optimized by hand | Larger |
+| Design effort | High | Low |
+| Area | Optimized by hand | Larger |
 | Performance | Best control over speed and power | Good but less tuned |
-| Flexibility | Complete control over sizing and layout | Limited to library cells |
 | Typical use | Analog, memories, critical datapaths | Large digital blocks |
-
-### Layout and Physical Verification Concepts
-
-- **Layers (gpdk180):** N-well, active (oxide), poly (gate), n+/p+ implants, contacts, Metal1 to Metal6, and vias between metals.
-- **Design rules:** minimum width, spacing, enclosure and extension rules for each layer, set by the foundry. Gate length for this process is 180 nm.
-- **Well and substrate contacts:** N-well tied to VDD and p-substrate tied to GND to avoid latch-up and keep the transistors properly biased.
-- **Routing:** Metal1 for local connections inside cells, Metal2 and above for inter-cell routing; poly is used for gates and short local connections.
-- **DRC (Design Rule Check):** verifies the layout obeys all geometric rules.
-- **LVS (Layout vs Schematic):** extracts devices and connections from the layout and checks that they match the schematic netlist.
-- **PEX (Parasitic Extraction):** extracts resistance and capacitance from the layout for realistic post-layout simulation.
 
 ### Why 180 nm (gpdk180)?
 
-gpdk180 is a generic 180 nm process design kit widely used in academia. It is simple, with VDD = 1.8 V, a manageable number of layers, and well-documented rules, so it is ideal for learning the complete full-custom flow from schematic to layout.
-
-### Applications
-
-- Arithmetic Logic Units (ALU) for compare and branch operations
-- Sorting and ranking hardware
-- Address and tag comparison in caches and memories
-- Digital thresholding in ADCs and control systems
-- Priority encoders and decision logic
+gpdk180 is a generic 180 nm process design kit widely used in academia, with VDD = 1.8 V, a manageable number of layers and well-documented rules.
 
 ---
 
 ## 🧱 Hierarchical Cells
 
-Each building block is designed as its own schematic + symbol + layout and then reused hierarchically.
-
 | Level | Cell | Description |
 |-------|------|-------------|
 | 1 | INV | Basic CMOS inverter (1 PMOS + 1 NMOS) |
-| 2 | AND2 | 2-input AND |
-| 2 | OR2 | 2-input OR |
+| 2 | AND2 | NAND2 followed by an inverter |
+| 2 | OR2 | NOR2 followed by an inverter |
 | 2 | XNOR2 | Bit-equality cell (A ⊙ B) |
-| 3 | 1-bit comparator | Compares one bit of A and B |
-| 4 | 4-bit comparator | Four 1-bit stages combined, outputs A>B, A=B, A<B |
+| 3 | 1-bit comparator | One XNOR2, two INV, two AND2 |
+| 4 | 4-bit comparator | Four 1-bit stages plus AND2/OR2 combining logic |
 
 ### Transistor Sizing
 
-| Device | W/L | Notes |
-|--------|-----|-------|
-| NMOS | [W_n] / 180 nm | [fill in] |
-| PMOS | [W_p] / 180 nm | [fill in, typically ~2× NMOS] |
+| Device | Library cell | W / L |
+|--------|--------------|-------|
+| NMOS | nmos1 | 2 µm / 180 nm |
+| PMOS | pmos1 | 2 µm / 180 nm |
 
 ---
 
 ## 📊 Results
 
-### Functional Simulation
-
-Simulation was run for all input combinations (or a representative exhaustive set) with **VDD = 1.8 V**.
-
-| Test Case | A | B | A > B | A = B | A < B | Result |
-|-----------|---|---|-------|-------|-------|--------|
-| 1 | 0000 | 0000 | 0 | 1 | 0 | ✅ PASS |
-| 2 | 0101 | 0011 | 1 | 0 | 0 | ✅ PASS |
-| 3 | 0011 | 0101 | 0 | 0 | 1 | ✅ PASS |
-| 4 | 1111 | 1111 | 0 | 1 | 0 | ✅ PASS |
-| 5 | 1000 | 0111 | 1 | 0 | 0 | ✅ PASS |
-| 6 | 0111 | 1000 | 0 | 0 | 1 | ✅ PASS |
-
-### Performance Summary
-
-| Metric | Value | Unit |
-|--------|-------|------|
-| Technology | gpdk180 (180 nm) | — |
-| Supply Voltage | 1.8 | V |
-| Propagation Delay (worst case) | [value] | ns |
-| Average Power | [value] | μW |
-| Total Transistor Count | [value] | — |
-| Layout Area | [value] | μm² |
-
 ### Physical Verification
 
 - ✅ **DRC status**: Clean ("No DRC errors found" for INV, AND2, OR2, XNOR2, 1-bit and 4-bit comparator layouts)
-- ✅ **LVS status**: [Clean, confirm and add screenshot]
 
 ---
-
 
 ## 🖼 Visual Gallery
 
 ### 1. Basic CMOS Gate Schematics
 
 #### Inverter
-![Inverter Schematic](images/inverterschematic.jpeg)
+![Inverter Schematic](schematics%20and%20waveform/inverterschematic.jpeg)
 
 #### AND Gate
-![AND Schematic](images/and%20schematic.jpeg)
+![AND Schematic](schematics%20and%20waveform/and%20schematic.jpeg)
 
 #### OR Gate
-![OR Schematic](images/or%20schematic.jpeg)
+![OR Schematic](schematics%20and%20waveform/or%20schematic.jpeg)
 
 #### XNOR Gate
-![XNOR Schematic](images/xnorschematic.jpeg)
+![XNOR Schematic](schematics%20and%20waveform/xnorschematic.jpeg)
 
 ---
 
 ### 2. Comparator Schematics and Simulation
 
 #### 1-Bit Comparator Schematic
-![1-Bit Comparator Schematic](schematics and waveform/1bit comparatorschematic.jpeg)
+![1-Bit Comparator Schematic](schematics%20and%20waveform/1bit%20comparatorschematic.jpeg)
 
 #### 1-Bit Comparator Waveform
-![1-Bit Comparator Waveform](images/1bit%20comparatorwaveform.jpeg)
+![1-Bit Comparator Waveform](schematics%20and%20waveform/1bit%20comparatorwaveform.jpeg)
 
 #### 4-Bit Comparator Schematic
-![4-Bit Comparator Schematic](images/4bit%20comparator%20using%201bit.jpeg)
+![4-Bit Comparator Schematic](schematics%20and%20waveform/4bit%20comparator%20using%201bit.jpeg)
 
 #### 4-Bit Comparator Waveform
-![4-Bit Comparator Waveform](images/4bit%20comparator%20waveform.jpeg)
+![4-Bit Comparator Waveform](schematics%20and%20waveform/4bit%20comparator%20waveform.jpeg)
 
 ---
 
 ### 3. Layout of Basic CMOS Gates
 
 #### Inverter Layout
-![Inverter Layout](images/inv_layout.png)
+![Inverter Layout](layout%20and%20drs%20check/inv_layout.png)
 
 #### AND Gate Layout
-![AND Layout](images/and%20layout.png)
+![AND Layout](layout%20and%20drs%20check/and%20layout.png)
 
 #### OR Gate Layout
-![OR Layout](images/or_layout.png)
+![OR Layout](layout%20and%20drs%20check/or_layout.png)
 
 #### XNOR Gate Layout
-![XNOR Layout](images/xnor_layout.png)
+![XNOR Layout](layout%20and%20drs%20check/xnor_layout.png)
 
 ---
 
 ### 4. Comparator Layouts
 
 #### 1-Bit Comparator Layout
-![1-Bit Comparator Layout](images/1bitcomparator_layout.png)
+![1-Bit Comparator Layout](layout%20and%20drs%20check/1bitcomparator_layout.png)
 
 #### 4-Bit Comparator Layout
-![4-Bit Comparator Layout](images/4_bitcomparatorlayout.png)
+![4-Bit Comparator Layout](layout%20and%20drs%20check/4_bitcomparatorlayout.png)
 
 ---
 
 ### 5. Design Rule Check (DRC)
 
 #### Inverter DRC
-![Inverter DRC](images/inv_drs.png)
+![Inverter DRC](layout%20and%20drs%20check/inv_drs.png)
 
 #### AND Gate DRC
-![AND DRC](images/and_drs.png)
+![AND DRC](layout%20and%20drs%20check/and_drs.png)
 
 #### OR Gate DRC
-![OR DRC](images/or_drs.png)
+![OR DRC](layout%20and%20drs%20check/or_drs.png)
 
 #### XNOR Gate DRC
-![XNOR DRC](images/xnor_drs.png)
+![XNOR DRC](layout%20and%20drs%20check/xnor_drs.png)
 
 #### 1-Bit Comparator DRC
-![1-Bit Comparator DRC](images/1_bitcomparator_drs.png)
+![1-Bit Comparator DRC](layout%20and%20drs%20check/1_bitcomparator_drs.png)
 
 #### 4-Bit Comparator DRC
-![4-Bit Comparator DRC](images/4bitcomparator_drs.png)
-
+![4-Bit Comparator DRC](layout%20and%20drs%20check/4bitcomparator_drs.png)
 
 ---
 
@@ -367,12 +295,9 @@ Simulation was run for all input combinations (or a representative exhaustive se
 ### Prerequisites
 
 ```
-# Required EDA Tools
 - Cadence Virtuoso (Schematic Editor, Layout Editor, ADE)
 - Cadence Spectre (circuit simulator)
-- Cadence Assura / Pegasus / Calibre (DRC & LVS)
-
-# Technology Library
+- DRC deck for gpdk180
 - gpdk180 (180 nm generic PDK)
 ```
 
@@ -381,11 +306,9 @@ Simulation was run for all input combinations (or a representative exhaustive se
 1. **Create library** attached to the gpdk180 technology library
 2. **Design basic cells**: INV, AND2, OR2, XNOR2 (schematic → symbol → simulate)
 3. **Build the comparator schematic** hierarchically using the basic cells
-4. **Simulate** in ADE with pulse/bit sources on A[3:0] and B[3:0], VDD = 1.8 V
+4. **Simulate** in ADE with pulse sources on A[3:0] and B[3:0], VDD = 1.8 V
 5. **Draw layout** of each cell, then place and route the top level
 6. **Run DRC** and fix all violations
-7. **Run LVS** and match layout against schematic
-8. *(Optional)* Extract parasitics (PEX) and re-simulate
 
 ---
 
@@ -399,6 +322,7 @@ Simulation was run for all input combinations (or a representative exhaustive se
 | Cell Library | INV, AND2, OR2, XNOR2 |
 | Technology | gpdk180 (180 nm CMOS) |
 | Supply Voltage | 1.8 V |
+| Transistor Size | W = 2 µm, L = 180 nm |
 | Tools | Cadence Virtuoso, Spectre |
 
 ---
@@ -409,15 +333,7 @@ Simulation was run for all input combinations (or a representative exhaustive se
 - **Faculty**: Dr. P. Ranga Babu
 - **Department**: Electronics and Communication Engineering
 - **Institution**: Indian Institute of Information Technology Design and Manufacturing, Kurnool
-- **Academic Year**: 2025-2026 (Semester 5)
-
-### Learning Outcomes
-
-✅ Transistor-level design of CMOS logic gates  
-✅ Hierarchical schematic and symbol creation in Virtuoso  
-✅ Simulation and functional verification using Spectre  
-✅ Full-custom layout with DRC and LVS clean-up  
-✅ Understanding of area, delay and power trade-offs at 180 nm  
+- **Academic Year**: 2026-2027 (Semester 5)
 
 ---
 
@@ -425,9 +341,9 @@ Simulation was run for all input combinations (or a representative exhaustive se
 
 - [ ] Cascadable inputs (I_A>B, I_A=B, I_A<B) like the 7485
 - [ ] Extension to 8-bit and 16-bit comparators
-- [ ] Post-layout (PEX) simulation and delay comparison
+- [ ] LVS and post-layout (PEX) simulation
 - [ ] Migration to 90 nm / 45 nm technology
-- [ ] Delay and power optimization through transistor sizing
+- [ ] Delay and power optimization through transistor sizing (Wp ≈ 2Wn)
 
 ---
 
@@ -437,17 +353,6 @@ Simulation was run for all input combinations (or a representative exhaustive se
 2. N. H. E. Weste and D. M. Harris, *CMOS VLSI Design: A Circuits and Systems Perspective*, 4th ed., Addison-Wesley, 2011.
 3. J. Rabaey, A. Chandrakasan, and B. Nikolic, *Digital Integrated Circuits: A Design Perspective*, 2nd Edition, Prentice Hall, 2003.
 4. Cadence Virtuoso User Guide and gpdk180 PDK documentation.
-
----
-
-## 🛠 Tools & Technologies
-
-| Category | Tools |
-|----------|-------|
-| Schematic & Layout | Cadence Virtuoso |
-| Simulation | Cadence Spectre / ADE |
-| Verification | DRC, LVS |
-| Technology | gpdk180 (180 nm) |
 
 ---
 
