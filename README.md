@@ -278,55 +278,87 @@ Simulation was run for all input combinations (or a representative exhaustive se
 
 ---
 
+
 ## 🖼 Visual Gallery
 
-### Layout of Basic Cells
+### 1. Basic CMOS Gate Schematics
 
 #### Inverter
-![Inverter Layout](images/invlayout.png)
+![Inverter Schematic](images/inverterschematic.jpeg)
 
+#### AND Gate
+![AND Schematic](images/and%20schematic.jpeg)
 
-Inverter layout in gpdk180 with VDD/GND rails, in/out pins.
+#### OR Gate
+![OR Schematic](images/or%20schematic.jpeg)
 
-#### AND2 Gate
-![AND2 Layout](images/and layout.png)
-
-
-#### OR2 Gate
-![OR2 Layout](images/or_layout.png)
-
-
-#### XNOR2 Gate
-![XNOR2 Layout](images/xnor_layout.png)
-
+#### XNOR Gate
+![XNOR Schematic](images/xnorschematic.jpeg)
 
 ---
 
-### 1-Bit Comparator Layout
-![1-bit Comparator Layout](images/1bitcomparator_layout.png)
+### 2. Comparator Schematics and Simulation
 
+#### 1-Bit Comparator Schematic
+![1-Bit Comparator Schematic](images/1bit%20comparatorschematic.jpeg)
 
-Placement of the XNOR, AND, OR and INV cells for one comparator stage, routed with Metal1/Metal2.
+#### 1-Bit Comparator Waveform
+![1-Bit Comparator Waveform](images/1bit%20comparatorwaveform.jpeg)
+
+#### 4-Bit Comparator Schematic
+![4-Bit Comparator Schematic](images/4bit%20comparator%20using%201bit.jpeg)
+
+#### 4-Bit Comparator Waveform
+![4-Bit Comparator Waveform](images/4bit%20comparator%20waveform.jpeg)
 
 ---
 
-### 4-Bit Comparator Layout
-![4-bit Comparator Layout](images/4_bitcomparatorlayout.png)
+### 3. Layout of Basic CMOS Gates
 
+#### Inverter Layout
+![Inverter Layout](images/inv_layout.png)
 
-Full 4-bit comparator layout with cell instances placed and routed.
+#### AND Gate Layout
+![AND Layout](images/and%20layout.png)
+
+#### OR Gate Layout
+![OR Layout](images/or_layout.png)
+
+#### XNOR Gate Layout
+![XNOR Layout](images/xnor_layout.png)
 
 ---
 
-### 4-Bit Comparator Schematic
-![4-bit Comparator Schematic](images/4bit comparator using 1bit.jpeg)
+### 4. Comparator Layouts
 
-Top-level schematic in Cadence Virtuoso with inputs A[3:0], B[3:0] and outputs A>B, A=B, A<B.
+#### 1-Bit Comparator Layout
+![1-Bit Comparator Layout](images/1bitcomparator_layout.png)
 
-### Simulation Waveforms
-![Simulation Waveforms](images/4bit comparator waveform.jpeg)
+#### 4-Bit Comparator Layout
+![4-Bit Comparator Layout](images/4_bitcomparatorlayout.png)
 
-Transient simulation (VDD = 1.8 V) showing the input patterns on A[3:0] and B[3:0] and the three outputs. Only one output is high at a time, matching the truth table.
+---
+
+### 5. Design Rule Check (DRC)
+
+#### Inverter DRC
+![Inverter DRC](images/inv_drs.png)
+
+#### AND Gate DRC
+![AND DRC](images/and_drs.png)
+
+#### OR Gate DRC
+![OR DRC](images/or_drs.png)
+
+#### XNOR Gate DRC
+![XNOR DRC](images/xnor_drs.png)
+
+#### 1-Bit Comparator DRC
+![1-Bit Comparator DRC](images/1_bitcomparator_drs.png)
+
+#### 4-Bit Comparator DRC
+![4-Bit Comparator DRC](images/4bitcomparator_drs.png)
+
 
 ---
 
