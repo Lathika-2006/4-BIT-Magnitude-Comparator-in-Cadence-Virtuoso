@@ -13,6 +13,10 @@ A magnitude comparator compares two binary numbers **A[3:0]** and **B[3:0]** and
 
 This project implements the comparator **full-custom**: every gate is drawn at the transistor (NMOS/PMOS) level, simulated, and laid out manually in Cadence Virtuoso on the 180 nm gpdk180 process.
 
+### Circuit Diagram
+
+![Circuit Diagram](circuit/circuit%20diagram.jpg)
+
 ---
 
 ## ✨ Key Highlights
