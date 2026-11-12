@@ -300,7 +300,7 @@ Simulation was run for all input combinations (or a representative exhaustive se
 ### 2. Comparator Schematics and Simulation
 
 #### 1-Bit Comparator Schematic
-![1-Bit Comparator Schematic](images/1bit%20comparatorschematic.jpeg)
+![1-Bit Comparator Schematic](schematics and waveform/1bit comparatorschematic.jpeg)
 
 #### 1-Bit Comparator Waveform
 ![1-Bit Comparator Waveform](images/1bit%20comparatorwaveform.jpeg)
