@@ -283,27 +283,27 @@ Simulation was run for all input combinations (or a representative exhaustive se
 ### Layout of Basic Cells
 
 #### Inverter
-![Inverter Layout](images/inverter_layout.png)
+![Inverter Layout](images/invlayout.png)
 
 
 Inverter layout in gpdk180 with VDD/GND rails, in/out pins.
 
 #### AND2 Gate
-![AND2 Layout](images/and_gate_layout.png)
+![AND2 Layout](images/and layout.png)
 
 
 #### OR2 Gate
-![OR2 Layout](images/or_gate_layout.png)
+![OR2 Layout](images/or_layout.png)
 
 
 #### XNOR2 Gate
-![XNOR2 Layout](images/xnor_gate_layout.png)
+![XNOR2 Layout](images/xnor_layout.png)
 
 
 ---
 
 ### 1-Bit Comparator Layout
-![1-bit Comparator Layout](images/1bit_comparator_layout.png)
+![1-bit Comparator Layout](images/1bitcomparator_layout.png)
 
 
 Placement of the XNOR, AND, OR and INV cells for one comparator stage, routed with Metal1/Metal2.
@@ -311,7 +311,7 @@ Placement of the XNOR, AND, OR and INV cells for one comparator stage, routed wi
 ---
 
 ### 4-Bit Comparator Layout
-![4-bit Comparator Layout](images/4bit_comparator_layout.png)
+![4-bit Comparator Layout](images/4_bitcomparatorlayout.png)
 
 
 Full 4-bit comparator layout with cell instances placed and routed.
@@ -319,12 +319,12 @@ Full 4-bit comparator layout with cell instances placed and routed.
 ---
 
 ### 4-Bit Comparator Schematic
-![4-bit Comparator Schematic](images/4bit_schematic.png)
+![4-bit Comparator Schematic](images/4bit comparator using 1bit.jpeg)
 
 Top-level schematic in Cadence Virtuoso with inputs A[3:0], B[3:0] and outputs A>B, A=B, A<B.
 
 ### Simulation Waveforms
-![Simulation Waveforms](images/waveform.png)
+![Simulation Waveforms](images/4bit comparator waveform.jpeg)
 
 Transient simulation (VDD = 1.8 V) showing the input patterns on A[3:0] and B[3:0] and the three outputs. Only one output is high at a time, matching the truth table.
 
